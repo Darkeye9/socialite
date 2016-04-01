@@ -14,6 +14,13 @@ class User extends AbstractUser
     public $token;
 
     /**
+     * The user's refresh token.
+     *
+     * @var string
+     */
+    public $refresh_token;
+
+    /**
      * Set the token on the user.
      *
      * @param  string  $token
@@ -21,7 +28,8 @@ class User extends AbstractUser
      */
     public function setToken($token)
     {
-        $this->token = $token;
+        $this->token = $token['access_token'];
+        $this->refresh_token = $token['refresh_token'];
 
         return $this;
     }

@@ -191,9 +191,8 @@ abstract class AbstractProvider implements ProviderContract
             throw new InvalidStateException;
         }
 
-        $user = $this->mapUserToObject($this->getUserByToken(
-            $token = $this->getAccessToken($this->getCode())
-        ));
+        $token = $this->getAccessToken($this->getCode());
+        $user = $this->mapUserToObject($this->getUserByToken($token['access_token']));
 
         return $user->setToken($token);
     }
@@ -267,7 +266,11 @@ abstract class AbstractProvider implements ProviderContract
      */
     protected function parseAccessToken($body)
     {
-        return json_decode($body, true)['access_token'];
+        $r = array();
+        $decoded = json_decode($body, true);
+        $r['access_token'] = $decoded['access_token'];
+        $r['refresh_token'] = isset($decoded['refresh_token']) ? $decoded['refresh_token'] : null;
+        return $r;
     }
 
     /**
