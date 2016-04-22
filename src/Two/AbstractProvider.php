@@ -106,6 +106,13 @@ abstract class AbstractProvider implements ProviderContract
     abstract protected function getTokenUrl();
 
     /**
+     * Get the Refresh URL for the provider.
+     *
+     * @return string
+     */
+    abstract protected function getRefreshUrl();
+
+    /**
      * Get the raw user for the given access token.
      *
      * @param  string  $token
@@ -245,6 +252,24 @@ abstract class AbstractProvider implements ProviderContract
     }
 
     /**
+     * Get the access token for the given code.
+     *
+     * @param $refreshToken
+     * @return string
+     */
+    public function getRefreshedToken($refreshToken)
+    {
+        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
+
+        $response = $this->getHttpClient()->post($this->getRefreshUrl(), [
+            'headers' => ['Accept' => 'application/json'],
+            $postKey => $this->getRefreshFields($refreshToken),
+        ]);
+
+        return $this->parseAccessToken($response->getBody());
+    }
+
+    /**
      * Get the POST fields for the token request.
      *
      * @param  string  $code
@@ -255,6 +280,20 @@ abstract class AbstractProvider implements ProviderContract
         return [
             'client_id' => $this->clientId, 'client_secret' => $this->clientSecret,
             'code' => $code, 'redirect_uri' => $this->redirectUrl,
+        ];
+    }
+
+    /**
+     * Get the POST fields for the token request.
+     *
+     * @param $refreshToken
+     * @return array
+     */
+    protected function getRefreshFields($refreshToken)
+    {
+        return [
+            'client_id' => $this->clientId, 'client_secret' => $this->clientSecret,
+            'refresh_token' => $refreshToken
         ];
     }
 
@@ -270,6 +309,20 @@ abstract class AbstractProvider implements ProviderContract
         $decoded = json_decode($body, true);
         $r['access_token'] = $decoded['access_token'];
         $r['refresh_token'] = isset($decoded['refresh_token']) ? $decoded['refresh_token'] : null;
+        return $r;
+    }
+
+    /**
+     * Get the refresh token from the refresh response body.
+     *
+     * @param  string  $body
+     * @return string
+     */
+    protected function parseRefreshToken($body)
+    {
+        $r = array();
+        $decoded = json_decode($body, true);
+        $r['access_token'] = $decoded['access_token'];
         return $r;
     }
 

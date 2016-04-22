@@ -40,6 +40,11 @@ class GoogleProvider extends AbstractProvider implements ProviderInterface
         return 'https://accounts.google.com/o/oauth2/token';
     }
 
+    protected function getRefreshUrl()
+    {
+        return 'https://www.googleapis.com/oauth2/v4/token';
+    }
+
     /**
      * Get the access token for the given code.
      *
@@ -67,6 +72,19 @@ class GoogleProvider extends AbstractProvider implements ProviderInterface
     {
         return array_add(
             parent::getTokenFields($code), 'grant_type', 'authorization_code'
+        );
+    }
+
+    /**
+     * Get the POST fields for the token refresh.
+     *
+     * @param $refreshToken
+     * @return array
+     */
+    protected function getRefreshFields($refreshToken)
+    {
+        return array_add(
+            parent::getRefreshFields($refreshToken), 'grant_type', 'refresh_token'
         );
     }
 
